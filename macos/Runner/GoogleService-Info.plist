@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>API_KEY</key>
+	<string>AIzaSyDqrw_kwXrMRel9k8SbJaZX0GIL0J7jD7E</string>
+	<key>GCM_SENDER_ID</key>
+	<string>166950148075</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.vitium.vitium.RunnerTests</string>
+	<key>PROJECT_ID</key>
+	<string>vitiumv2-test</string>
+	<key>STORAGE_BUCKET</key>
+	<string>vitiumv2-test.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:166950148075:ios:6099aeb9dcf709eecf2bae</string>
+</dict>
+</plist>

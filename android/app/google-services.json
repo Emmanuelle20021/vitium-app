@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "166950148075",
+    "project_id": "vitiumv2-test",
+    "storage_bucket": "vitiumv2-test.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:166950148075:android:2b2e56e0f0d2419dcf2bae",
+        "android_client_info": {
+          "package_name": "com.vitium.vitium"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDCGScRLeU6Q15HqngrLTDn6bPPngFuuLM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
