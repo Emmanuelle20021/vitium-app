@@ -8,7 +8,7 @@ import 'package:vitium/screens/login_screen/login_screen.dart';
 import 'package:vitium/screens/postulant_create_profile_screen.dart';
 import 'package:vitium/screens/postulants_list_screen.dart';
 import 'package:vitium/screens/register_screen.dart';
-import 'firebase_options.dart';
+import 'keys/firebase_options.dart';
 
 FirebaseApp? firebase;
 
