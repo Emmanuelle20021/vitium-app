@@ -36,19 +36,22 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.6
-  firebase_core: ^2.27.1
-  cloud_firestore: ^4.15.9
-  firebase_auth: ^4.17.9
-  firebase_storage: ^11.6.10
-  image_picker: ^1.0.7
-  flutter_native_splash: ^2.4.0
-  shared_preferences: ^2.2.2
-  toastification: ^1.2.1
-  flutter_bloc: ^8.1.6
-  path_provider: ^2.1.4
-  image: ^4.1.7
+  firebase_core: any
+  cloud_firestore: any
+  firebase_auth: any
+  firebase_storage: any
+  image_picker: any
+  shared_preferences: any
+  toastification: any
+  flutter_bloc: any
+  path_provider: any
+  image: any
+  file_picker: ^8.1.2
+  url_launcher: ^6.3.1
+  http: any
 
 dev_dependencies:
+  flutter_native_splash: any
   flutter_test:
     sdk: flutter
 
@@ -73,6 +76,7 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/images/
+    - assets/images/splash.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
@@ -101,7 +105,14 @@ flutter:
   # see https://flutter.dev/custom-fonts/#from-packages
 
 flutter_native_splash:
-  color: "#003399"
+  color: 42a5f5 # Color de fondo para modo claro
   image: assets/images/splash.png
-  android: true
-  ios: true
+  background_image: assets/images/splash.png
+  color_dark: FFFFFF # Color de fondo para modo oscuro
+  image_dark: assets/images/splash.png
+  background_image_dark: assets/images/splash.png
+  fullscreen: true # Pantalla completa
+  android_gravity: center # Centrar imagen en Android
+  ios_content_mode: scaleAspectFill # Escalar imagen en iOS
+
+

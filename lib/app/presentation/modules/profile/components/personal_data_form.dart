@@ -1,14 +1,19 @@
-import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:toastification/toastification.dart';
-import 'package:vitium/app/presentation/bloc/disabilities_cubit.dart';
+import 'package:vitium/app/data/services/user_service.dart';
+import 'package:vitium/app/data/utils/image_compresser.dart';
 import 'package:vitium/app/presentation/bloc/register_cubit.dart';
 import 'package:vitium/app/presentation/global/components/buttons/rectangle_button.dart';
 import 'package:vitium/app/presentation/global/components/inputs/underline_input.dart';
 
 import '../../../../data/utils/constants/constants.dart';
+import '../../../../data/utils/injector.dart';
 import '../../../../domain/models/register_model.dart';
+import '../../../global/components/inputs/disabilities_input.dart';
+import '../../../routes/routes.dart';
 
 class PersonalDataForm extends StatefulWidget {
   const PersonalDataForm({super.key});
@@ -27,7 +32,6 @@ class _PersonalDataFormState extends State<PersonalDataForm> {
   Widget build(BuildContext context) {
     return BlocBuilder<RegisterCubit, RegisterModel>(
       builder: (context, state) {
-        final user = FirebaseAuth.instance.currentUser;
         initializeControllers(context, state);
         return Form(
           key: formKey,
@@ -71,7 +75,7 @@ class _PersonalDataFormState extends State<PersonalDataForm> {
                     value!.isEmpty ? 'Por favor ingrese su dirección' : null,
                 keyboardType: TextInputType.streetAddress,
               ),
-              (user == null)
+              (state.user.role == 'postulant')
                   ? const DisabilitiesInput()
                   : UnderlineInput(
                       icon: Icons.cases_outlined,
@@ -86,7 +90,38 @@ class _PersonalDataFormState extends State<PersonalDataForm> {
                           : null,
                     ),
               RectangleButton(
-                onPressed: () {},
+                onPressed: () async {
+                  final auth = Injector.of(context).accountRepository;
+                  if (formKey.currentState!.validate()) {
+                    if (state.file != null) {
+                      final File file = await ImageCompresser.compressImage(
+                        image: state.file!,
+                        fileName: '${state.user.id}',
+                      );
+                      final response = await auth.uploadProfilePicture(file);
+                      if (response.data != null && context.mounted) {
+                        context.read<RegisterCubit>().updateUser(
+                              image: response.data,
+                            );
+                        UserService.createUser(state.user);
+                      } else if (context.mounted) {
+                        toastification.show(
+                          context: context,
+                          title: const Text('Ups Algo salió mal'),
+                          description: const Text(
+                            'Revisa tu conexión a internet e intenta de nuevo',
+                          ),
+                          autoCloseDuration: const Duration(seconds: 3),
+                        );
+                      }
+                    } else {
+                      UserService.createUser(state.user);
+                    }
+                    if (context.mounted) {
+                      Navigator.pushReplacementNamed(context, Routes.home);
+                    }
+                  }
+                },
                 child: const Text('Guardar'),
               )
             ],
@@ -110,66 +145,13 @@ class _PersonalDataFormState extends State<PersonalDataForm> {
     addressController.addListener(() {
       context.read<RegisterCubit>().updateUser(address: addressController.text);
     });
-  }
-}
-
-class DisabilitiesInput extends StatefulWidget {
-  const DisabilitiesInput({super.key});
-
-  @override
-  State<DisabilitiesInput> createState() => _DisabilitiesInputState();
-}
-
-class _DisabilitiesInputState extends State<DisabilitiesInput> {
-  final List<String> _permitedDisabilities = [
-    'Visual',
-    'Auditiva',
-    'Motora',
-    'Intelectual',
-    'Psicosocial',
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocConsumer<DisabilitiesCubit, DisabilitiesState>(
-      builder: (BuildContext context, state) {
-        return Wrap(
-          alignment: WrapAlignment.start,
-          spacing: 10,
-          children: List.generate(_permitedDisabilities.length, (index) {
-            return InputChip(
-              label: Text(
-                _permitedDisabilities[index],
-                style: TextStyle(
-                  color: state.containsDisability(_permitedDisabilities[index])
-                      ? Colors.white
-                      : Colors.black,
-                ),
-              ),
-              onPressed: () {
-                context
-                    .read<DisabilitiesCubit>()
-                    .toggleDisability(_permitedDisabilities[index]);
-              },
-              backgroundColor:
-                  state.containsDisability(_permitedDisabilities[index])
-                      ? Colors.blue
-                      : Colors.grey[200],
-            );
-          }),
-        );
-      },
-      listener: (BuildContext context, DisabilitiesState? state) {
-        if (state != null && state.hasNoDisabilities) {
-          toastification.show(
-            context: context,
-            title: const Text(
-              'No puedes continuar sin seleccionar una discapacidad',
-            ),
-            animationDuration: const Duration(seconds: 3),
-          );
-        }
-      },
-    );
+    if (context.read<RegisterCubit>().user.role == 'recruiter') {
+      companyController.text = state.user.companyCode ?? '';
+      companyController.addListener(() {
+        context
+            .read<RegisterCubit>()
+            .updateUser(companyCode: companyController.text);
+      });
+    }
   }
 }

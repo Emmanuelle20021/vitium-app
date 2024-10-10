@@ -5,7 +5,7 @@ import 'package:vitium/app/domain/models/user_model.dart';
 class RegisterModel {
   String password;
   File? file;
-  User user;
+  UserModel user;
   Exception? exception;
 
   RegisterModel({
@@ -23,8 +23,13 @@ class RegisterModel {
     };
   }
 
-  RegisterModel copyWith(
-      {String? password, User? user, File? file, Exception? exception}) {
+  RegisterModel copyWith({
+    String? password,
+    UserModel? user,
+    File? file,
+    Exception? exception,
+    String? companyCode,
+  }) {
     return RegisterModel(
       password: password ?? this.password,
       user: user ?? this.user,
@@ -62,11 +67,18 @@ class RegisterModel {
         other.exception == exception;
   }
 
+  bool containsDisability(String disability) {
+    return user.disabilities.contains(disability);
+  }
+
   @override
   int get hashCode => password.hashCode ^ user.hashCode;
 
+  bool get hasNoDisabilities => user.disabilities.isEmpty;
+
   @override
-  String toString() => 'RegisterModel(password: $password, user: $user)';
+  String toString() =>
+      'RegisterModel(password: $password, user: ${user.toString()})';
 
   bool isComplete() {
     return user.isComplete() && password.isNotEmpty;
@@ -76,6 +88,8 @@ class RegisterModel {
     return !identical(this, other) ||
         other is! RegisterModel ||
         other.password != password ||
-        other.user != user;
+        other.user != user ||
+        other.file != file ||
+        other.exception != exception;
   }
 }

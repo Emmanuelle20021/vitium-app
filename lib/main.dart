@@ -2,14 +2,21 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:toastification/toastification.dart';
 import 'package:vitium/app/data/implementation/firebase_auth_repository_implementation.dart';
+import 'package:vitium/app/data/services/user_service.dart';
+import 'package:vitium/app/data/services/vacancy_service.dart';
+import 'package:vitium/app/data/utils/constants/constants.dart';
 import 'package:vitium/app/data/utils/injector.dart';
+import 'package:vitium/app/domain/models/vacancy_model.dart';
 import 'package:vitium/app/presentation/bloc/bloc_provider.dart';
 import 'package:vitium/app/presentation/bloc/exception_handler_cubit.dart';
+import 'package:vitium/app/presentation/bloc/register_cubit.dart';
+import 'package:vitium/app/presentation/bloc/vacancys_cubit.dart';
 import 'package:vitium/app/presentation/routes/app_routes.dart';
+import 'app/domain/models/async_response.dart';
+import 'app/domain/models/user_model.dart';
 import 'app/presentation/routes/routes.dart';
 import 'keys/firebase_options.dart';
 
@@ -19,7 +26,6 @@ void main() async {
   try {
     WidgetsFlutterBinding.ensureInitialized();
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    FlutterNativeSplash.preserve(widgetsBinding: WidgetsBinding.instance);
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
@@ -48,7 +54,7 @@ class Vitium extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    FlutterNativeSplash.remove();
+    final vacancysCubit = context.read<VacancysCubit>();
     return BlocConsumer<ExceptionHandlerCubit, ExceptionHandlerState>(
       listener: (context, state) {
         if (state.hasException && state.message != null) {
@@ -60,81 +66,84 @@ class Vitium extends StatelessWidget {
         }
       },
       builder: (context, state) {
-        return MaterialApp(
-          initialRoute: notFirstTime == true
-              ? Routes.homePostulant
-              : Routes.splashScreens,
-          routes: appRoutes,
+        final currentUser = FirebaseAuth.instance.currentUser;
+
+        return FutureBuilder(
+          future: Future.wait(
+            currentUser != null
+                ? [
+                    VacancyService.getVacancys(),
+                    UserService.getUser(currentUser.uid),
+                    VacancyService.getMyVacancies(currentUser.uid),
+                  ]
+                : [
+                    VacancyService.getVacancys(),
+                    Future.value(false),
+                    Future.value(false)
+                  ],
+          ),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Container(
+                color: Colors.white,
+                child: Center(
+                  child: Image.asset(
+                    kVitiumLogo,
+                    height: 100,
+                  ),
+                ),
+              );
+            }
+            if (snapshot.hasError) {
+              return const Center(
+                child: Text('Error'),
+              );
+            }
+            final AsyncResponse<UserModel>? userData =
+                (snapshot.data != null && snapshot.data![1] != false)
+                    ? snapshot.data![1] as AsyncResponse<UserModel>
+                    : null;
+            if (snapshot.hasData &&
+                snapshot.data != null &&
+                userData?.data != null) {
+              context.read<RegisterCubit>().setUser(userData!.data!);
+            }
+            if (snapshot.data != null && snapshot.data![2] != false) {
+              final AsyncResponse<List<Vacancy>>? myVacancyData =
+                  snapshot.data != null && snapshot.data![2] != false
+                      ? snapshot.data![2] as AsyncResponse<List<Vacancy>>
+                      : null;
+              if (snapshot.hasData &&
+                  snapshot.data != null &&
+                  myVacancyData?.data != null &&
+                  myVacancyData!.data!.isNotEmpty) {
+                vacancysCubit.setVacancys(myVacancyData.data!);
+              }
+            }
+            if (snapshot.data != null &&
+                snapshot.data![0] != false &&
+                userData?.data != null &&
+                userData!.data!.role != 'recruiter') {
+              final AsyncResponse<List<Vacancy>> vacancyData =
+                  snapshot.data![0] as AsyncResponse<List<Vacancy>>;
+              if (snapshot.hasData &&
+                  snapshot.data != null &&
+                  vacancyData.data != null &&
+                  vacancyData.data!.isNotEmpty) {
+                vacancysCubit.setVacancys(vacancyData.data!);
+              }
+            }
+
+            return MaterialApp(
+              initialRoute: (notFirstTime == true &&
+                      FirebaseAuth.instance.currentUser != null)
+                  ? Routes.home
+                  : Routes.splashScreens,
+              routes: appRoutes,
+            );
+          },
         );
       },
     );
-  }
-}
-
-class HomeWidget extends StatelessWidget {
-  const HomeWidget({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Home'),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ElevatedButton(
-              onPressed: _removePreferences,
-              child: const Text('Quitar Preferencias'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushNamed(context, Routes.login);
-              },
-              child: const Text('Go to Login'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushNamed(context, Routes.register);
-              },
-              child: const Text('Go to Register'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushNamed(context, Routes.postulantCreateProfile);
-              },
-              child: const Text('Go to Profile'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushNamed(context, Routes.postulantsList);
-              },
-              child: const Text('Go to Postulants'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                context.read<ExceptionHandlerCubit>().handleException(
-                      Exception('Error'),
-                      'Error Message',
-                    );
-              },
-              child: const Text('Error Handler'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushNamed(context, Routes.infoProfile);
-              },
-              child: const Text('Go to Info Profile'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _removePreferences() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.remove('notFirstTime');
   }
 }

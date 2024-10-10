@@ -6,4 +6,8 @@ class AsyncResponse<T> {
 
   bool get hasData => data != null;
   bool get hasException => exception != null;
+
+  bool isRight() {
+    return hasData;
+  }
 }

@@ -29,3 +29,21 @@ get kInputLabelStyle => const TextStyle(
       fontSize: 14,
       fontWeight: FontWeight.w600,
     );
+
+get kAppBarWithName => AppBar(
+      backgroundColor: Colors.transparent,
+      scrolledUnderElevation: 0,
+      title: const Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          Text(
+            'VITIUM',
+            style: TextStyle(
+              color: Colors.blue,
+              fontWeight: FontWeight.w400,
+              fontSize: 20,
+            ),
+          ),
+        ],
+      ),
+    );

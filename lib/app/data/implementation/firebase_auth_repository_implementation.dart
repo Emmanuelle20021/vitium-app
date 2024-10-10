@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:vitium/app/domain/models/async_response.dart';
@@ -37,6 +38,7 @@ class FirebaseAuthRepositoryImplementation implements AccountRepository {
         email: email,
         password: password,
       );
+
       return AsyncResponse(
         data: userCredential,
       );
@@ -196,6 +198,44 @@ class FirebaseAuthRepositoryImplementation implements AccountRepository {
       return AsyncResponse(
         exception: exception,
       );
+    }
+  }
+
+  @override
+  Future<AsyncResponse<String>> uploadCv(File cv) async {
+    try {
+      Reference storageRef = FirebaseStorage.instance.ref().child(
+            'cv/${_auth.currentUser!.uid}',
+          );
+      TaskSnapshot snapshot = await storageRef.putFile(cv);
+      String downloadURL = await snapshot.ref.getDownloadURL();
+      return AsyncResponse(data: downloadURL);
+    } on FirebaseException catch (exception) {
+      return AsyncResponse(
+        exception: exception,
+      );
+    }
+  }
+
+  @override
+  Future<AsyncResponse<String>> getRole() async {
+    final user = _auth.currentUser;
+    if (user != null) {
+      final firebaseInstance = FirebaseFirestore.instance;
+      final userRef = firebaseInstance.collection('postulants').doc(user.uid);
+      final userDoc = await userRef.get();
+      if (userDoc.exists) {
+        return AsyncResponse(data: 'postulant');
+      }
+      final recruiterRef =
+          firebaseInstance.collection('recruiters').doc(user.uid);
+      final recruiterDoc = await recruiterRef.get();
+      if (recruiterDoc.exists) {
+        return AsyncResponse(data: 'recruiter');
+      }
+      return AsyncResponse(data: null);
+    } else {
+      return AsyncResponse(data: null);
     }
   }
 }

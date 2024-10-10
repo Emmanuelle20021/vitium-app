@@ -1,6 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:toastification/toastification.dart';
+import 'package:vitium/app/data/services/user_service.dart';
+import 'package:vitium/app/presentation/bloc/register_cubit.dart';
 
 import '../../../../data/utils/injector.dart';
 import '../../../../data/utils/validators.dart';
@@ -21,7 +24,7 @@ class _FormLoginUserState extends State<FormLoginUser> {
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-
+  bool passwordVisible = true;
   @override
   Widget build(BuildContext context) {
     return Form(
@@ -38,19 +41,40 @@ class _FormLoginUserState extends State<FormLoginUser> {
             validator: Validators.validateEmail,
             label: const Text('Correo Electrónico'),
           ),
-          UnderlineInput(
-            label: const Text('Contraseña'),
-            icon: Icons.lock,
-            hintText: '*******',
-            controller: passwordController,
-            validator: Validators.validatePassword,
-            obscureText: true,
+          Stack(
+            children: [
+              UnderlineInput(
+                icon: Icons.lock_outline,
+                hintText: '*********',
+                label: const Text('Contraseña'),
+                obscureText: passwordVisible,
+                controller: passwordController,
+                validator: Validators.validatePassword,
+              ),
+              Positioned(
+                right: 0,
+                child: Semantics(
+                  button: true,
+                  hint: 'Mostrar contraseña',
+                  child: IconButton(
+                    onPressed: () {
+                      setState(() {
+                        passwordVisible = !passwordVisible;
+                      });
+                    },
+                    icon: Icon(
+                      passwordVisible
+                          ? Icons.visibility_outlined
+                          : Icons.visibility_off_outlined,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
           SizedBox(
             child: TextButton(
-              onPressed: () {
-                Navigator.pushReplacementNamed(context, Routes.register);
-              },
+              onPressed: () {},
               child: const Text(
                 '¿Olvidaste tu contraseña?',
                 style: TextStyle(
@@ -85,34 +109,51 @@ class _FormLoginUserState extends State<FormLoginUser> {
       email,
       password,
     );
-    if (response.hasException) {
-      debugPrint('User not found');
-      return;
-    } else if (context.mounted) {
-      final User user = response.data!;
+    if (response.hasException && context.mounted) {
       toastification.show(
         context: context,
-        title: Text('Bienvenido ${user.email}'),
-        description: const Text('Iniciaste sesión correctamente en Vitium'),
+        title: const Text('Ups Algo salió mal'),
+        description: const Text(
+          'Revisa tus credenciales e intenta de nuevo',
+        ),
         autoCloseDuration: const Duration(seconds: 3),
       );
-      Navigator.pushNamed(context, Routes.homePostulant);
-    }
-    // Check if email is verified
-    AsyncResponse isEmailVerified =
-        await accountRepository.checkEmailVerified();
-    if (isEmailVerified.hasException) {
-      debugPrint('Error: ${isEmailVerified.exception}');
       return;
-    }
-    if (!isEmailVerified.data) {
-      AsyncResponse isEmailSended =
-          await accountRepository.sendEmailVerification();
-      debugPrint(
-        isEmailSended.data
-            ? 'Email verified sent'
-            : 'Email verification not sent',
-      );
+    } else if (context.mounted) {
+      final registerCubit = context.read<RegisterCubit>();
+      final User user = response.data!;
+      final userModel = await UserService.getUser(user.uid);
+      if (userModel.data != null) registerCubit.setUser(userModel.data!);
+      // Check if email is verified
+      AsyncResponse isEmailVerified =
+          await accountRepository.checkEmailVerified();
+      if (isEmailVerified.hasException) {
+        debugPrint('Error: ${isEmailVerified.exception}');
+        return;
+      }
+      if (!isEmailVerified.data) {
+        AsyncResponse isEmailSended =
+            await accountRepository.sendEmailVerification();
+        debugPrint(
+          isEmailSended.data
+              ? 'Email verified sent'
+              : 'Email verification not sent',
+        );
+      }
+      if (context.mounted) {
+        final registerCubit = context.read<RegisterCubit>();
+        if (registerCubit.state.user.isComplete()) {
+          Navigator.pushReplacementNamed(context, Routes.home);
+        } else {
+          Navigator.pushReplacementNamed(context, Routes.infoProfile);
+        }
+        toastification.show(
+          context: context,
+          title: Text('Bienvenido ${user.email}'),
+          description: const Text('Iniciaste sesión correctamente en Vitium'),
+          autoCloseDuration: const Duration(seconds: 3),
+        );
+      }
       return;
     }
   }

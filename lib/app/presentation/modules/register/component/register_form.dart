@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:toastification/toastification.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:vitium/app/data/services/user_service.dart';
 import 'package:vitium/app/data/utils/validators.dart';
+import 'package:vitium/app/presentation/bloc/exception_handler_cubit.dart';
+import 'package:vitium/app/presentation/bloc/register_cubit.dart';
 import 'package:vitium/app/presentation/global/components/buttons/rectangle_button.dart';
 
+import '../../../../data/utils/injector.dart';
 import '../../../global/components/inputs/underline_input.dart';
+import '../../../routes/routes.dart';
 
 class RegisterUserForm extends StatefulWidget {
   const RegisterUserForm({super.key});
@@ -13,7 +18,7 @@ class RegisterUserForm extends StatefulWidget {
 }
 
 class _RegisterUserFormState extends State<RegisterUserForm> {
-  bool isPostulant = true;
+  bool isRecruiter = false;
   bool passwordVisible = true;
 
   late GlobalKey<FormState> _formKey;
@@ -88,6 +93,21 @@ class _RegisterUserFormState extends State<RegisterUserForm> {
                 return null;
               },
             ),
+            CheckboxListTile(
+              title: const Text('Soy reclutador'),
+              controlAffinity: ListTileControlAffinity.platform,
+              value: isRecruiter,
+              onChanged: (value) {
+                setState(() {
+                  isRecruiter = value!;
+                });
+              },
+              checkboxSemanticLabel: 'Soy reclutador',
+              activeColor: Colors.blue,
+              secondary: const Icon(
+                Icons.business_center_outlined,
+              ),
+            ),
             RectangleButton(
               onPressed: _register,
               child: const Text(
@@ -105,13 +125,44 @@ class _RegisterUserFormState extends State<RegisterUserForm> {
     );
   }
 
-  void _register() {
-    if (_formKey.currentState!.validate()) {
+  void _register() async {
+    if (_formKey.currentState!.validate() && mounted) {
       // Register user
-      toastification.show(
-        context: context,
-        title: const Text('Usuario registrado correctamente'),
+      final auth = Injector.of(context).accountRepository;
+      final authResponse = await auth.createAccount(
+        _emailController.text,
+        _passwordController.text,
       );
+      if (authResponse.data != null && mounted) {
+        final registerCubit = context.read<RegisterCubit>();
+        registerCubit.updateUser(
+          email: _emailController.text,
+        );
+        registerCubit.updatePassword(_passwordController.text);
+        registerCubit.updateUser(
+          role: isRecruiter ? 'recruiter' : 'postulant',
+          id: authResponse.data?.user?.uid,
+        );
+        final userCreationResponser = await UserService.createUser(
+          registerCubit.state.user,
+        );
+        if (userCreationResponser.data != null && mounted) {
+          Navigator.pushReplacementNamed(
+            context,
+            Routes.login,
+          );
+        } else if (userCreationResponser.exception != null && mounted) {
+          context.read<ExceptionHandlerCubit>().handleException(
+                userCreationResponser.exception!,
+                'Error al crear usuario',
+              );
+        }
+      } else if (authResponse.exception != null && mounted) {
+        context.read<ExceptionHandlerCubit>().handleException(
+              authResponse.exception!,
+              'Error al crear usuario',
+            );
+      }
     }
   }
 

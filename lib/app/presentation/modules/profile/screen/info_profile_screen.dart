@@ -2,7 +2,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:vitium/app/presentation/global/components/visual_details/aplication_name_tag.dart';
 import 'package:vitium/app/presentation/modules/profile/components/photo_form.dart';
-import 'package:vitium/app/presentation/modules/signup/component/personal_data_form.dart';
+import 'package:vitium/app/presentation/modules/profile/components/personal_data_form.dart';
 
 class InfoProfileScreen extends StatelessWidget {
   const InfoProfileScreen({super.key});
@@ -38,6 +38,9 @@ class InfoProfileScreen extends StatelessWidget {
                 fontSize: 16,
                 color: Colors.grey,
               ),
+            ),
+            SizedBox(
+              height: 32,
             ),
             Expanded(
               child: Column(

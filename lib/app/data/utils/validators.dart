@@ -15,12 +15,12 @@ class Validators {
     //Minimo 8 caracteres
     //Maximo 15
     //Al menos una letra mayúscula
-    //Al menos una letra minucula
+    //Al menos una letra minuscula
     //Al menos un dígito
     //No espacios en blanco
     //Al menos 1 caracter especial
     final passwordValidator = RegExp(
-      r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[$@$!%*?&])([A-Za-z\d$@$!%*?&]|[^ ]){8,15}$',
+      r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[$@$!%*?&.-_])([A-Za-z\d$@$!%*?&]|[^ ]){8,15}$',
     );
     if (passwordValidator.hasMatch(password!)) {
       return null;

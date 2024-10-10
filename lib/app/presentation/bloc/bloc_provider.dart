@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:vitium/app/presentation/bloc/disabilities_cubit.dart';
+import 'package:vitium/app/presentation/bloc/vacancys_cubit.dart';
 import 'exception_handler_cubit.dart';
 import 'register_cubit.dart';
 
@@ -19,8 +19,8 @@ class BlocsProvider extends StatelessWidget {
           create: (context) => ExceptionHandlerCubit(),
         ),
         BlocProvider(
-          create: (context) => DisabilitiesCubit(),
-        )
+          create: (context) => VacancysCubit(),
+        ),
       ],
       child: child,
     );

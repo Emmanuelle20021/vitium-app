@@ -20,9 +20,11 @@ abstract class AccountRepository {
   Future<AsyncResponse<bool>> sendPasswordResetEmail(String email);
   Future<AsyncResponse<User>> getCurrentUser();
   Future<AsyncResponse<String>> uploadProfilePicture(File photo);
+  Future<AsyncResponse<String>> uploadCv(File cv);
   Future<AsyncResponse<bool>> deleteProfilePicture();
   Future<AsyncResponse<String>> getProfilePicture();
   Future<AsyncResponse<bool>> updateEmail(String email);
   Future<AsyncResponse<bool>> updatePassword(String password);
   Future<AsyncResponse<bool>> updatePhotoUrl(String photoUrl);
+  Future<AsyncResponse<String>> getRole();
 }
