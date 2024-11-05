@@ -4,21 +4,23 @@ import 'package:vitium/app/presentation/global/components/visual_details/aplicat
 import 'package:vitium/app/presentation/modules/profile/components/photo_form.dart';
 import 'package:vitium/app/presentation/modules/profile/components/personal_data_form.dart';
 
+import '../../../../data/utils/constants/constants.dart';
+
 class InfoProfileScreen extends StatelessWidget {
   const InfoProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
       resizeToAvoidBottomInset: false,
       body: Padding(
-        padding: EdgeInsets.all(kPagingTouchSlop),
+        padding: const EdgeInsets.all(kPagingTouchSlop),
         child: Column(
           children: [
-            AplicationNameTag(
+            const AplicationNameTag(
               withLogo: true,
             ),
-            SizedBox(
+            const SizedBox(
               height: 32,
             ),
             Text(
@@ -26,23 +28,23 @@ class InfoProfileScreen extends StatelessWidget {
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
-                color: Colors.blue,
+                color: kSecondaryColor,
               ),
             ),
-            SizedBox(
+            const SizedBox(
               height: 16,
             ),
-            Text(
+            const Text(
               'Modifica tu perfil, cuentanos un poco sobre ti',
               style: TextStyle(
                 fontSize: 16,
                 color: Colors.grey,
               ),
             ),
-            SizedBox(
+            const SizedBox(
               height: 32,
             ),
-            Expanded(
+            const Expanded(
               child: Column(
                 children: [
                   PhotoForm(),

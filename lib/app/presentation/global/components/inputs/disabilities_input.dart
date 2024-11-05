@@ -51,7 +51,7 @@ class _DisabilitiesInputState extends State<DisabilitiesInput> {
                   },
                   backgroundColor:
                       state.containsDisability(_permitedDisabilities[index])
-                          ? Colors.blue
+                          ? kSecondaryColor
                           : Colors.grey[200],
                 );
               }),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:vitium/app/domain/models/vacancy_model.dart';
 
+import '../../../../data/utils/constants/constants.dart';
 import '../../../modules/vacancies/screen/vacancy_info.dart';
 
 class VacancyCard extends StatelessWidget {
@@ -148,7 +149,7 @@ class VacancyCard extends StatelessWidget {
     if (isRejected) {
       return Colors.red;
     } else if (isAccepted) {
-      return Colors.blue;
+      return kSecondaryColor;
     } else if (isPending) {
       return Colors.grey;
     }

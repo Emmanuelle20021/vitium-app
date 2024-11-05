@@ -39,7 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
           bottomNavigationBar: BottomNavigationBar(
             elevation: 0,
             currentIndex: currentIndex,
-            selectedItemColor: Colors.blue,
+            selectedItemColor: kSecondaryColor,
             items: [
               const BottomNavigationBarItem(
                 icon: Icon(Icons.home),

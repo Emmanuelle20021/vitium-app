@@ -1,27 +1,104 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:vitium/app/data/services/vacancy_service.dart';
+import 'package:vitium/app/data/utils/extension/int_extensions.dart';
 import 'package:vitium/app/presentation/bloc/vacancys_cubit.dart';
 
+import '../../../../data/utils/constants/constants.dart';
 import '../../../global/components/buttons/vacancy_card.dart';
+import '../../vacancies/screen/vacancy_info.dart';
 
-class HomePostulant extends StatelessWidget {
+class HomePostulant extends StatefulWidget {
   const HomePostulant({super.key});
+
+  @override
+  State<HomePostulant> createState() => _HomePostulantState();
+}
+
+class _HomePostulantState extends State<HomePostulant> {
+  bool isEmpty = true;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
+        Padding(
           padding: EdgeInsets.symmetric(vertical: 20.0),
-          child: SearchBar(
-            hintText: 'Buscar vacantes',
-            leading: Icon(Icons.search),
-            padding: WidgetStatePropertyAll<EdgeInsetsDirectional>(
-              EdgeInsetsDirectional.symmetric(horizontal: 20),
-            ),
-          ),
+          child: BlocBuilder<VacancysCubit, VacancysState>(
+              builder: (_, vacancysState) {
+            return Container(
+              padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 10),
+              decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(50),
+                  border: Border(
+                    bottom: BorderSide(
+                      color: Colors.grey[300]!,
+                      width: 1,
+                    ),
+                  )),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.search,
+                    color: Theme.of(context).colorScheme.secondary,
+                    size: 30,
+                  ),
+                  10.toHorizontalGap,
+                  Expanded(
+                    child: Stack(
+                      alignment: AlignmentDirectional.centerStart,
+                      children: [
+                        isEmpty
+                            ? Text(
+                                'Buscar vacantes',
+                                style: TextStyle(
+                                  color: Colors.grey[400],
+                                  fontWeight: FontWeight.w400,
+                                  fontSize: 16,
+                                ),
+                              )
+                            : SizedBox(),
+                        Autocomplete<String>(
+                          onSelected: (option) {
+                            final vacancy = vacancysState.vacancys.firstWhere(
+                              (vacancy) => vacancy.title == option,
+                            );
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => VacancyInfo(
+                                  vacancyId: vacancy.id!,
+                                ),
+                              ),
+                            );
+                          },
+                          optionsBuilder: (textEditingValue) {
+                            if (textEditingValue.text.isEmpty) {
+                              isEmpty = true;
+                            } else {
+                              isEmpty = false;
+                            }
+                            setState(() {});
+                            return textEditingValue.text.isEmpty
+                                ? const Iterable<String>.empty()
+                                : vacancysState.vacancys
+                                    .where((vacancy) => vacancy.title
+                                        .toLowerCase()
+                                        .contains(textEditingValue.text
+                                            .toLowerCase()))
+                                    .map((vacancy) => vacancy.title);
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
         ),
         const Text(
           'Ofertas de empleo basadas en tú actividad',
@@ -59,10 +136,10 @@ class HomePostulant extends StatelessWidget {
                       onPressed: () {
                         refresh(context);
                       },
-                      child: const Text(
+                      child: Text(
                         'Recargar',
                         style: TextStyle(
-                          color: Colors.blue,
+                          color: kSecondaryColor,
                           fontSize: 16,
                         ),
                       ),

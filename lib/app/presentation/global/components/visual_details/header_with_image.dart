@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:vitium/app/presentation/global/components/visual_details/profile_image.dart';
 
+import '../../../../data/utils/constants/constants.dart';
+
 class HeaderWithImage extends StatelessWidget {
   const HeaderWithImage({
     super.key,
@@ -36,7 +38,7 @@ class HeaderWithImage extends StatelessWidget {
                 child: Text(
                   seccondText,
                   style: TextStyle(
-                    color: Colors.blue,
+                    color: kSecondaryColor,
                     fontWeight: FontWeight.w500,
                     fontSize: scaleDown ? 20 : 28,
                   ),

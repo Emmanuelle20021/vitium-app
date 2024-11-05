@@ -6,6 +6,7 @@ import 'package:vitium/app/presentation/bloc/vacancys_cubit.dart';
 import 'package:vitium/app/presentation/global/components/buttons/rectangle_button.dart';
 import 'package:vitium/app/presentation/modules/recruiter/screen/create_vacancy.dart';
 
+import '../../../../data/utils/constants/constants.dart';
 import '../../../global/components/buttons/vacancy_card.dart';
 
 class HomeRecruiter extends StatelessWidget {
@@ -87,8 +88,56 @@ class HomeRecruiter extends StatelessWidget {
           listener: (_, __) {},
           builder: (context, state) {
             if (state.vacancys.isEmpty) {
-              return const Center(
-                child: Text('No hay vacantes'),
+              return Expanded(
+                child: RefreshIndicator(
+                  onRefresh: () async {
+                    final response = await VacancyService.getMyVacancies(
+                        FirebaseAuth.instance.currentUser!.uid);
+                    if (response.hasData &&
+                        response.data != null &&
+                        response.data!.isNotEmpty &&
+                        context.mounted) {
+                      context.read<VacancysCubit>().setVacancys(response.data!);
+                    }
+                  },
+                  child: ListView.builder(
+                    itemCount: 1,
+                    itemBuilder: (context, index) {
+                      return Center(
+                        child: Column(
+                          children: [
+                            Text('No hay vacantes'),
+                            SizedBox(
+                              height: 10,
+                            ),
+                            TextButton(
+                              onPressed: () async {
+                                final response =
+                                    await VacancyService.getMyVacancies(
+                                        FirebaseAuth.instance.currentUser!.uid);
+                                if (response.hasData &&
+                                    response.data != null &&
+                                    response.data!.isNotEmpty &&
+                                    context.mounted) {
+                                  context
+                                      .read<VacancysCubit>()
+                                      .setVacancys(response.data!);
+                                }
+                              },
+                              child: Text(
+                                'Recargar',
+                                style: TextStyle(
+                                  color: kSecondaryColor,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
               );
             }
             return Expanded(

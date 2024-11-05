@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../data/utils/constants/constants.dart';
+
 class AplicationNameTag extends StatelessWidget {
   const AplicationNameTag({
     super.key,
@@ -20,9 +22,9 @@ class AplicationNameTag extends StatelessWidget {
             height: MediaQuery.of(context).size.height * 0.04,
             child: Image.asset('assets/images/vitium_logo.png'),
           ),
-        const Text(
+        Text(
           'VITIUM',
-          style: TextStyle(color: Colors.blue),
+          style: TextStyle(color: kVitiumNameColor),
         ),
       ],
     );

@@ -1,6 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
+import '../../../../data/utils/constants/constants.dart';
 import '../../../global/components/visual_details/aplication_name_tag.dart';
 import '../../../global/components/visual_details/header_with_logo.dart';
 import '../../../routes/routes.dart';
@@ -36,9 +37,9 @@ class RegisterScreen extends StatelessWidget {
                   onPressed: () {
                     Navigator.pushReplacementNamed(context, Routes.login);
                   },
-                  child: const Text(
+                  child: Text(
                     'Inicia Sesión',
-                    style: TextStyle(color: Colors.blue),
+                    style: TextStyle(color: kSecondaryColor),
                   ),
                 ),
               ],

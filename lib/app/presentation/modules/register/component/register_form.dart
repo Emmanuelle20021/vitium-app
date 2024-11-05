@@ -6,6 +6,7 @@ import 'package:vitium/app/presentation/bloc/exception_handler_cubit.dart';
 import 'package:vitium/app/presentation/bloc/register_cubit.dart';
 import 'package:vitium/app/presentation/global/components/buttons/rectangle_button.dart';
 
+import '../../../../data/utils/constants/constants.dart';
 import '../../../../data/utils/injector.dart';
 import '../../../global/components/inputs/underline_input.dart';
 import '../../../routes/routes.dart';
@@ -103,7 +104,7 @@ class _RegisterUserFormState extends State<RegisterUserForm> {
                 });
               },
               checkboxSemanticLabel: 'Soy reclutador',
-              activeColor: Colors.blue,
+              activeColor: kSecondaryColor,
               secondary: const Icon(
                 Icons.business_center_outlined,
               ),

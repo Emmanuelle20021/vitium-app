@@ -1,14 +1,13 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:vitium/app/data/utils/constants/constants.dart';
 import 'package:vitium/app/data/utils/extension/int_extensions.dart';
+import 'package:vitium/app/domain/models/async_response.dart';
 import 'package:vitium/app/domain/models/vacancy_model.dart';
-import 'package:vitium/app/presentation/bloc/register_cubit.dart';
-import 'package:vitium/app/presentation/bloc/vacancys_cubit.dart';
-import 'package:vitium/app/presentation/global/components/buttons/rectangle_button.dart';
-
-import '../../../../data/services/vacancy_service.dart';
+import 'package:vitium/app/data/services/user_service.dart';
+import 'package:vitium/app/data/services/vacancy_service.dart';
+import '../../../../domain/models/user_model.dart';
+import '../../../global/components/buttons/rectangle_button.dart';
 import '../../recruiter/screen/postulants_list.dart';
 
 class VacancyInfo extends StatefulWidget {
@@ -24,18 +23,58 @@ class VacancyInfo extends StatefulWidget {
 }
 
 class _VacancyInfoState extends State<VacancyInfo> {
+  bool inProgress = false;
+  UserModel? userState;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Aseguramos que cualquier acción dependiente del widget ya montado ocurra correctamente
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Coloca cualquier código que necesite estar después de la construcción del widget
+    });
+  }
+
+  Future<Vacancy> _getVacancyInfo() async {
+    final vacancyResponse = await VacancyService.getVacancys();
+    final vacancy = vacancyResponse.data!
+        .firstWhere((vacancy) => vacancy.id == widget.vacancyId);
+    return vacancy;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final userState = context.read<RegisterCubit>();
-    bool inProgress = false;
-
     return Scaffold(
       appBar: kAppBarWithName,
-      body: BlocBuilder<VacancysCubit, VacancysState>(
-        builder: (context, state) {
-          final Vacancy vacancy = state.vacancys
-              .firstWhere((element) => element.id == widget.vacancyId);
-          debugPrint(vacancy.toString());
+      body: FutureBuilder(
+        future: Future.wait([
+          UserService.getUser(FirebaseAuth.instance.currentUser!.uid),
+          _getVacancyInfo(),
+        ]),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+          if (snapshot.hasError) {
+            return const Center(
+              child: Text('Error'),
+            );
+          }
+          if (snapshot.data == null) {
+            return const Center(
+              child: Text('Error'),
+            );
+          }
+
+          // Desestructuramos los datos de la respuesta de la vacante y el usuario
+          AsyncResponse asyncResponse =
+              snapshot.data![0] as AsyncResponse<UserModel>;
+          userState = asyncResponse.data;
+          Vacancy vacancy = snapshot.data![1] as Vacancy;
+
           return SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -60,9 +99,9 @@ class _VacancyInfoState extends State<VacancyInfo> {
                   ),
                   Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.monetization_on_outlined,
-                        color: Colors.blue,
+                        color: kSecondaryColor,
                       ),
                       10.toHorizontalGap,
                       Text(
@@ -75,9 +114,9 @@ class _VacancyInfoState extends State<VacancyInfo> {
                   ),
                   Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.handshake,
-                        color: Colors.blue,
+                        color: kSecondaryColor,
                       ),
                       10.toHorizontalGap,
                       Text(vacancy.aceptedDisabilities.toString()),
@@ -136,36 +175,40 @@ class _VacancyInfoState extends State<VacancyInfo> {
                         .replaceAll(',', '\n'),
                   ),
                   20.toVerticalGap,
-                  if (userState.user.role == 'postulant' &&
-                      !vacancy.isPostulant(
-                        FirebaseAuth.instance.currentUser!.uid,
-                      ))
+                  if (userState!.role == 'postulant' &&
+                      !vacancy
+                          .isPostulant(FirebaseAuth.instance.currentUser!.uid))
                     RectangleButton(
                       onPressed: () async {
                         if (vacancy.isPostulant(
-                          FirebaseAuth.instance.currentUser!.uid,
-                        )) {
-                          return;
+                            FirebaseAuth.instance.currentUser!.uid)) {
+                          return; // Si ya está postulado, no hacer nada
                         }
                         if (inProgress) {
                           return;
                         }
                         inProgress = true;
+
+                        // Realizamos la postulación
                         await VacancyService.applyVacancy(
                           id: vacancy.id!,
                           postulant: FirebaseAuth.instance.currentUser!.uid,
                         );
-                        debugPrint(vacancy.postulants.toString());
+
+                        // Obtenemos las vacantes actualizadas
                         final response = await VacancyService.getVacancys();
                         if (response.hasData &&
                             response.data != null &&
                             response.data!.isNotEmpty &&
                             context.mounted) {
-                          context.read<VacancysCubit>().setVacancys(
-                                response.data!,
-                              );
-                          Navigator.pop(context);
+                          // Actualizamos el estado local
+                          setState(() {
+                            // Cambia el estado del botón a "Postulado"
+                          });
+                        } else {
+                          // Manejo de errores si no se obtiene respuesta de las vacantes
                         }
+                        inProgress = false;
                       },
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -183,13 +226,12 @@ class _VacancyInfoState extends State<VacancyInfo> {
                         ],
                       ),
                     ),
-                  if (userState.user.role == 'recruiter')
+                  if (userState!.role == 'recruiter')
                     RectangleButton(
                       onPressed: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (context) => PostulantsList(
-                              ids: vacancy.postulants!,
                               vacancyId: vacancy.id!,
                             ),
                           ),

@@ -14,6 +14,7 @@ class UnderlineInput extends StatelessWidget {
     this.onChanged,
     this.label,
     this.maxLength,
+    this.autoFills,
   });
   final IconData icon;
   final String hintText;
@@ -25,6 +26,7 @@ class UnderlineInput extends StatelessWidget {
   final Widget? label;
   final void Function(String)? onChanged;
   final int? maxLength;
+  final List<String>? autoFills;
 
   @override
   Widget build(BuildContext context) {
@@ -43,6 +45,7 @@ class UnderlineInput extends StatelessWidget {
               initialValue: initialValue,
               keyboardType: keyboardType,
               validator: validator,
+              autofillHints: autoFills,
               maxLength: maxLength,
               autovalidateMode: AutovalidateMode.onUserInteraction,
               decoration: InputDecoration(

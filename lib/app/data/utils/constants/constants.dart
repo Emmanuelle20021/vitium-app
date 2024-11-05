@@ -33,13 +33,13 @@ get kInputLabelStyle => const TextStyle(
 get kAppBarWithName => AppBar(
       backgroundColor: Colors.transparent,
       scrolledUnderElevation: 0,
-      title: const Row(
+      title: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           Text(
             'VITIUM',
             style: TextStyle(
-              color: Colors.blue,
+              color: kVitiumNameColor,
               fontWeight: FontWeight.w400,
               fontSize: 20,
             ),

@@ -163,7 +163,8 @@ class VacancyService {
       await vacancyRefs.update({'postulants': postulants});
       return AsyncResponse(data: true);
     } catch (e) {
-      return AsyncResponse(exception: e as Exception);
+      debugPrint('Error al aplicar a la vacante: $e');
+      throw Exception('Hubo un error al postularte. Intenta de nuevo.');
     }
   }
 
@@ -257,6 +258,28 @@ class VacancyService {
       return AsyncResponse(data: true);
     } catch (e) {
       return AsyncResponse(exception: e as Exception);
+    }
+  }
+
+  static Future<AsyncResponse<List<Map<String, dynamic>>>> getPostulants(
+    vacancyId,
+  ) async {
+    try {
+      final DocumentSnapshot<Map<String, dynamic>> documentSnapshot =
+          await _firebaseFirestore
+              .collection(vacancysPath)
+              .doc(vacancyId)
+              .get();
+      final List<Map<String, dynamic>> postulants =
+          List<Map<String, dynamic>>.from(
+              documentSnapshot.data()!['postulants']);
+      return AsyncResponse(data: postulants);
+    } catch (e) {
+      return AsyncResponse(
+        exception: Exception(
+          'Error al recuperar los postulantes',
+        ),
+      );
     }
   }
 }

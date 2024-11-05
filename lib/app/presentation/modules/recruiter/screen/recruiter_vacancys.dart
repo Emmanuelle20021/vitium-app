@@ -11,34 +11,37 @@ class RecruiterVacancies extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<VacancysCubit, VacancysState>(
-      builder: (context, state) {
-        if (state.vacancys.isEmpty) {
-          return const Center(
-            child: Text('Aún no tienes vacantes'),
-          );
-        }
-        return RefreshIndicator(
-          onRefresh: () async {
-            final asyncResponse = await VacancyService.getMyVacancies(
-              FirebaseAuth.instance.currentUser!.uid,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: BlocBuilder<VacancysCubit, VacancysState>(
+        builder: (context, state) {
+          if (state.vacancys.isEmpty) {
+            return const Center(
+              child: Text('Aún no tienes vacantes'),
             );
-            if (asyncResponse.isRight() &&
-                asyncResponse.data!.isNotEmpty &&
-                context.mounted) {
-              context.read<VacancysCubit>().setVacancys(asyncResponse.data!);
-            }
-          },
-          child: ListView.builder(
-            itemCount: state.vacancys.length,
-            itemBuilder: (context, index) {
-              return VacancyCard(
-                vacancy: state.vacancys[index],
+          }
+          return RefreshIndicator(
+            onRefresh: () async {
+              final asyncResponse = await VacancyService.getMyVacancies(
+                FirebaseAuth.instance.currentUser!.uid,
               );
+              if (asyncResponse.isRight() &&
+                  asyncResponse.data!.isNotEmpty &&
+                  context.mounted) {
+                context.read<VacancysCubit>().setVacancys(asyncResponse.data!);
+              }
             },
-          ),
-        );
-      },
+            child: ListView.builder(
+              itemCount: state.vacancys.length,
+              itemBuilder: (context, index) {
+                return VacancyCard(
+                  vacancy: state.vacancys[index],
+                );
+              },
+            ),
+          );
+        },
+      ),
     );
   }
 }

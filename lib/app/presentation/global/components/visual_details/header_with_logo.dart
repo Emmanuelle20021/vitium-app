@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../data/utils/constants/constants.dart';
+
 class HeaderWithLogo extends StatelessWidget {
   const HeaderWithLogo({
     super.key,
@@ -20,9 +22,9 @@ class HeaderWithLogo extends StatelessWidget {
         const SizedBox(height: 20),
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 24,
-            color: Colors.blue,
+            color: kSecondaryColor,
           ),
         ),
         const SizedBox(height: 20),

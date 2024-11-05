@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import '../../../../data/utils/constants/constants.dart';
 import '../../../global/components/visual_details/aplication_name_tag.dart';
 import '../../../global/components/visual_details/header_with_logo.dart';
 import '../../../routes/routes.dart';
@@ -26,7 +27,7 @@ class _LoginScreenState extends State<LoginScreen> {
               width: width,
               height: 100,
               decoration: BoxDecoration(
-                color: Colors.blue,
+                color: kSecondaryColor,
                 borderRadius: BorderRadius.horizontal(
                   left: Radius.elliptical(
                     width,
@@ -66,9 +67,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         Navigator.pushReplacementNamed(
                             context, Routes.register);
                       },
-                      child: const Text(
+                      child: Text(
                         'Regístrate',
-                        style: TextStyle(color: Colors.blue),
+                        style: TextStyle(color: kSecondaryColor),
                       ),
                     ),
                   ],

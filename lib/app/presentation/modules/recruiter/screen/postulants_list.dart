@@ -11,11 +11,9 @@ import '../../../../data/services/vacancy_service.dart';
 class PostulantsList extends StatelessWidget {
   const PostulantsList({
     super.key,
-    required this.ids,
     required this.vacancyId,
   });
 
-  final List<Map<String, dynamic>> ids;
   final String vacancyId;
 
   @override
@@ -23,58 +21,92 @@ class PostulantsList extends StatelessWidget {
     return Scaffold(
       appBar: kAppBarWithName,
       body: FutureBuilder(
-        future: UserService.getUsers(ids),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-          if (snapshot.connectionState == ConnectionState.none) {
-            return Center(
-              child: Text(
-                'Error: ${snapshot.error}',
-              ),
-            );
-          }
-          if (snapshot.hasError) {
-            return Center(
-              child: Text(
-                'Error: ${snapshot.error}',
-              ),
-            );
-          }
-          if (snapshot.data!.data!.isEmpty) {
-            return const Center(
-              child: Text('No hay postulantes'),
-            );
-          }
-          List<UserModel> postulants = snapshot.data!.data!;
-          return Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: RefreshIndicator(
-              onRefresh: () async {
-                final response = await UserService.getUsers(ids);
-                postulants = response.data!;
+          future: VacancyService.getPostulants(vacancyId),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(
+                child: CircularProgressIndicator(),
+              );
+            }
+            if (snapshot.connectionState == ConnectionState.none) {
+              return Center(
+                child: Text(
+                  'No hay postulantes para esta vacante',
+                ),
+              );
+            }
+
+            if (snapshot.hasError) {
+              return Center(
+                child: Text(
+                  'Error: ${snapshot.error}',
+                ),
+              );
+            }
+            if (snapshot.data!.data!.isEmpty) {
+              return const Center(
+                child: Text('No hay postulantes'),
+              );
+            }
+            final List<Map<String, dynamic>> ids = snapshot.data!.data!;
+            return FutureBuilder(
+              future: UserService.getUsers(ids),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  );
+                }
+                if (snapshot.connectionState == ConnectionState.none) {
+                  return Center(
+                    child: Text(
+                      'Error: ${snapshot.error}',
+                    ),
+                  );
+                }
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Text(
+                      'Error: ${snapshot.error}',
+                    ),
+                  );
+                }
+                if (snapshot.data!.data!.isEmpty) {
+                  return const Center(
+                    child: Text('No hay postulantes'),
+                  );
+                }
+                List<UserModel> postulants = snapshot.data!.data!;
+                return Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: RefreshIndicator(
+                    onRefresh: () async {
+                      final response = await UserService.getUsers(ids);
+                      postulants = response.data!;
+                    },
+                    child: ListView.builder(
+                      itemCount: postulants.length,
+                      itemBuilder: (context, index) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 8.0),
+                          child: PostulantCard(
+                            vacancyId: vacancyId,
+                            postulant: postulants[index],
+                            status: ids[index]['status'],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                );
               },
-              child: ListView.builder(
-                itemCount: postulants.length,
-                itemBuilder: (context, index) {
-                  return PostulantCard(
-                      vacancyId: vacancyId,
-                      postulant: postulants[index],
-                      status: ids[index]['status']);
-                },
-              ),
-            ),
-          );
-        },
-      ),
+            );
+          }),
     );
   }
 }
 
-class PostulantCard extends StatelessWidget {
+class PostulantCard extends StatefulWidget {
   const PostulantCard({
     super.key,
     required this.postulant,
@@ -87,13 +119,26 @@ class PostulantCard extends StatelessWidget {
   final String vacancyId;
 
   @override
+  State<PostulantCard> createState() => _PostulantCardState();
+}
+
+class _PostulantCardState extends State<PostulantCard> {
+  String status = 'Pendiente';
+
+  @override
+  void initState() {
+    status = widget.status;
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return ListTile(
-      title: Text(postulant.name!),
+      title: Text(widget.postulant.name!),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(postulant.email!),
+          Text(widget.postulant.email!),
           10.toVerticalGap,
           Container(
             padding: const EdgeInsets.all(4),
@@ -122,38 +167,47 @@ class PostulantCard extends StatelessWidget {
         ],
       ),
       onTap: () async {
+        if (widget.status != 'Pendiente') return;
         showDialog(
           context: context,
           builder: (context) => PostulantDialog(
             onAccept: () async {
               await VacancyService.updatePostulationOfPostulant(
-                idVacancy: vacancyId,
-                idPostulant: postulant.id!,
+                idVacancy: widget.vacancyId,
+                idPostulant: widget.postulant.id!,
                 status: 'Aceptado',
               );
+              setState(() {
+                status = 'Aceptado';
+              });
               if (context.mounted) Navigator.of(context).pop();
             },
             onNotAccept: () async {
               await VacancyService.updatePostulationOfPostulant(
-                idVacancy: vacancyId,
-                idPostulant: postulant.id!,
+                idVacancy: widget.vacancyId,
+                idPostulant: widget.postulant.id!,
                 status: 'Rechazado',
               );
+              setState(() {
+                status = 'Rechazado';
+              });
               if (context.mounted) Navigator.of(context).pop();
             },
           ),
         );
       },
-      leading: postulant.image != null
-          ? CircleAvatar(
-              backgroundImage: NetworkImage(postulant.image!),
-            )
-          : const CircleAvatar(
-              child: Icon(Icons.person),
-            ),
+      leading:
+          (widget.postulant.image != null && widget.postulant.image!.isNotEmpty)
+              ? CircleAvatar(
+                  backgroundImage: NetworkImage(widget.postulant.image!),
+                )
+              : const CircleAvatar(
+                  backgroundColor: Colors.cyan,
+                  child: Icon(Icons.person),
+                ),
       trailing: GestureDetector(
         onTap: () async {
-          final Uri url = Uri.parse(postulant.cv!);
+          final Uri url = Uri.parse(widget.postulant.cv!);
           await launchUrl(
             url,
             mode: LaunchMode.externalApplication,
@@ -183,7 +237,7 @@ class PostulantCard extends StatelessWidget {
     if (status == 'Rechazado') {
       return Colors.red;
     } else if (status == 'Aceptado') {
-      return Colors.blue;
+      return kSecondaryColor;
     } else if (status == 'Pendiente') {
       return Colors.grey;
     }
@@ -264,9 +318,9 @@ class PostulantDialog extends StatelessWidget {
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
-                child: const Text(
+                child: Text(
                   'Cancelar',
-                  style: TextStyle(color: Colors.blue),
+                  style: TextStyle(color: kSecondaryColor),
                 ),
               ),
             ],

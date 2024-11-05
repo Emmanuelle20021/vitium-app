@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:toastification/toastification.dart';
 import 'package:vitium/app/data/services/user_service.dart';
@@ -34,12 +35,15 @@ class _FormLoginUserState extends State<FormLoginUser> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.max,
         children: [
-          UnderlineInput(
-            icon: Icons.person,
-            hintText: 'emma20021@gmail.com',
-            controller: emailController,
-            validator: Validators.validateEmail,
-            label: const Text('Correo Electrónico'),
+          AutofillGroup(
+            child: UnderlineInput(
+              icon: Icons.person,
+              hintText: 'emma20021@gmail.com',
+              controller: emailController,
+              validator: Validators.validateEmail,
+              label: const Text('Correo Electrónico'),
+              autoFills: [AutofillHints.email],
+            ),
           ),
           Stack(
             children: [
@@ -160,8 +164,10 @@ class _FormLoginUserState extends State<FormLoginUser> {
 
   @override
   void dispose() {
+    TextInput.finishAutofillContext();
     emailController.dispose();
     passwordController.dispose();
+
     super.dispose();
   }
 }
